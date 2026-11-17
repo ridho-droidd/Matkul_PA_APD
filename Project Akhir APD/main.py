@@ -1,52 +1,115 @@
 
-from auth import register, login, logout
-from petualang import menu_petualang
-from resepsionis import menu_resepsionis
-from admin import menu_admin
+from data import enemies, boss
+from player import create_player
+from battle import battle, preparation
+from leaderboard import leaderboard_menu, add_leaderboard
+from ui import pilih_menu
 
-from prettytable import PrettyTable
-from InquirerPy import inquirer
 
-def menu_awal():
+# MEMULAI PETUALANGAN
+def start_adventure():
+
+    player = create_player()
+
+    result = "Defeat"
+
+    print("\n================================")
+    print("       ADVENTURE BEGINS.")
+    print("================================")
+
+    # MELAWAN MUSUH BIASA
+    for enemy in enemies:
+
+        won = battle(player, enemy)
+
+        # JIKA PEMAIN KALAH
+        if not won:
+
+            result = "Defeat"
+            break
+
+        # MENU PERSIAPAN
+        lanjut = preparation(player)
+
+        # JIKA PEMAIN MENYERAH
+        if not lanjut:
+
+            result = "Abandoned"
+            break
+
+    # JIKA SEMUA MUSUH BIASA BERHASIL DIKALAHKAN
+    else:
+
+        print("\nSemua musuh berhasil dikalahkan.")
+        print("Bersiaplah menghadapi FINAL BOSS.")
+
+        won = battle(player, boss, True)
+
+        if won:
+
+            result = "Victory"
+
+            print("\n================================")
+            print("       YOU ARE A LEGEND.")
+            print("================================")
+
+        else:
+
+            result = "Defeat"
+
+    # MENYIMPAN HASIL PETUALANGAN
+    add_leaderboard(player, result)
+
+    # LAPORAN PETUALANGAN
+    print("\n========== ADVENTURE REPORT ==========")
+
+    print("Nama       :", player["name"])
+    print("Hasil      :", result)
+    print("Musuh kalah:", player["kills"])
+    print("Boss kalah :", player["boss_kills"])
+    print("Gold       :", player["gold"])
+
+    print("======================================")
+
+
+# MENU UTAMA
+def main():
+
+    print("\n========================================")
+    print("      LEGENDS OF THE LOST KINGDOM")
+    print("========================================")
 
     while True:
 
-        pilihan = inquirer.select(
-            message="=== GUILD PETUALANG ===",
-            choices=[
-                "Register",
-                "Login",
+        print("\nSelamat datang, petualang.")
+        print("Dunia menantikan kisah kepahlawananmu.")
+
+        choice = pilih_menu(
+            "Pilih menu utama:",
+            [
+                "Mulai Petualangan Baru",
+                "Lihat Leaderboard",
                 "Keluar"
             ]
-        ).execute()
+        )
 
-        if pilihan == "Register":
+        if choice == "Mulai Petualangan Baru":
 
-            register()
+            start_adventure()
 
-        elif pilihan == "Login":
+        elif choice == "Lihat Leaderboard":
 
-            username, role = login()
+            leaderboard_menu()
 
-            if role == "Petualang":
+        elif choice == "Keluar":
 
-                menu_petualang(username)
-                logout()
+            print("\nTerima kasih telah bermain.")
+            print("Sampai jumpa, petualang.")
 
-            elif role == "Resepsionis":
-
-                menu_resepsionis()
-                logout()
-
-            elif role == "Admin":
-
-                menu_admin()
-                logout()
-
-        elif pilihan == "Keluar":
-
-            print("Terima kasih")
             break
 
 
-menu_awal()
+# MENJALANKAN PROGRAM
+if __name__ == "__main__":
+
+    main()
